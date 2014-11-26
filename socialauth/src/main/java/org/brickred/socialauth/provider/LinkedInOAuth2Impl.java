@@ -66,9 +66,9 @@ import org.w3c.dom.NodeList;
 public class LinkedInOAuth2Impl extends AbstractProvider {
 
 	private static final long serialVersionUID = 3389564715902769183L;
-	private static final String CONNECTION_URL = "https://api.linkedin.com/v1/people/~/connections:(id,first-name,last-name,public-profile-url,picture-url)?oauth2_access_token=";
+	private static final String CONNECTION_URL = "https://api.linkedin.com/v1/people/~/connections:(id,first-name,last-name,public-profile-url,picture-urls::(original))?oauth2_access_token=";
 	private static final String UPDATE_STATUS_URL = "https://api.linkedin.com/v1/people/~/shares?oauth2_access_token=";
-	private static final String PROFILE_URL = "https://api.linkedin.com/v1/people/~:(id,first-name,last-name,languages,date-of-birth,picture-url,email-address,location:(name),phone-numbers,main-address)?oauth2_access_token=";
+	private static final String PROFILE_URL = "https://api.linkedin.com/v1/people/~:(id,first-name,last-name,languages,date-of-birth,picture-urls::(original),email-address,location:(name),phone-numbers,main-address)?oauth2_access_token=";
 	private static final String STATUS_BODY = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><share><comment>%1$s</comment><visibility><code>anyone</code></visibility></share>";
 	private static final String STATE = "state";
 	private static final Map<String, String> ENDPOINTS;
@@ -235,8 +235,13 @@ public class LinkedInOAuth2Impl extends AbstractProvider {
 					String id = XMLParseUtil.getElementData(p, "id");
 					String profileUrl = XMLParseUtil.getElementData(p,
 							"public-profile-url");
-					String pictureUrl = XMLParseUtil.getElementData(p,
-							"picture-url");
+					NodeList pics = p.getElementsByTagName("picture-urls");
+          String pictureUrl = null;
+          if (pics.getLength() !=0) {
+            pictureUrl = XMLParseUtil.getElementData((Element) pics.item(0),
+                "picture-url");
+          }
+          
 					if (id != null) {
 						Contact cont = new Contact();
 						if (fname != null) {
@@ -355,7 +360,12 @@ public class LinkedInOAuth2Impl extends AbstractProvider {
 					profile.setDob(bd);
 				}
 			}
-			String picUrl = XMLParseUtil.getElementData(root, "picture-url");
+			NodeList pics = root.getElementsByTagName("picture-urls");
+      String picUrl = null;
+      if (pics.getLength() !=0) {
+        picUrl = XMLParseUtil.getElementData((Element) pics.item(0),
+            "picture-url");
+      }
 			String id = XMLParseUtil.getElementData(root, "id");
 			if (picUrl != null) {
 				profile.setProfileImageURL(picUrl);
